@@ -13,8 +13,10 @@ echo "NODE_COUNT: $NODE_COUNT"
 echo "LOCATION: $LOCATION"
 
 #
-az group create --location $LOCATION --resource-group $RESOURCE_GROUP
-
+#az group create --location $LOCATION --resource-group $RESOURCE_GROUP
+#az aks create --node-count $NODE_COUNT --generate-ssh-keys --node-vm-size $VM_SKU --name $AKS_NAME --resource-group $RESOURCE_GROUP
 #
-az aks create --node-count $NODE_COUNT --generate-ssh-keys --node-vm-size $VM_SKU --name $AKS_NAME --resource-group $RESOURCE_GROUP
+az aks get-credentials --name $AKS_NAME --resource-group $RESOURCE_GROUP
+
+
 
