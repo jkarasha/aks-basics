@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hello-world-pod
+  labels:
+    zone: prod
+    version: "0.1.0"
+spec:
+  containers:
+  - name: hello-world-container
+    image: "gcr.io/google-samples/hello-app:1.0"
+    ports:
+    - containerPort: 8080
+    resources:
+      limits:
+        cpu: "0.5"
+        memory: "512Mi"
