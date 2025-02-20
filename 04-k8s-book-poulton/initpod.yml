@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: initpod
+  labels:
+    app: initializer
+spec:
+  initContainers:
+  - name: init-container
+    image: busybox:1.28.4
+    command: ['sh', '-c', 'until nslookup k8sbook; do echo waiting for k8sbook service; sleep 1; done; echo Service found!']
+  containers:
+  - name: web-container
+    image: nigelpoulton/web-app:latest
+    ports:
+    - containerPort: 8080
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
