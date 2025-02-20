@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: shield-ns
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: the-bus
+  namespace: shield-ns
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    env: marvel
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: shield-ns
+  name: triskelion
+  labels:
+    env: marvel
+spec:
+  containers:
+  - name: triskelion-container
+    image: "nigelpoulton/k8sbook:shield-01"
+    ports:
+    - containerPort: 8080
+    resources:
+      limits:
+        cpu: "0.5"
+        memory: "512Mi"
+    imagePullPolicy: Always
