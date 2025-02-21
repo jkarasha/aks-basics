@@ -23,3 +23,24 @@ For rolling updates to work, your apps should be loosely coupled and be backward
 Deployments automatically create associated ReplicaSets. To verify this for a given deployment, use `kubectl get rs`. For more details on the ReplicaSet, use `kubectl describe rs <replicaset-name>`.
 
 [Manual Scaling]
+There are two ways to manually scale deployments; imperatively, using `kubectl scale --replicas=3 deployment/my-deployment` and declaratively, by updating the deployment yaml file and reposting it.
+
+However to avoid conflicts and issues, it's recommended to make all updates declaratively.
+
+[Performing a rolling update]
+Remember that all updated operations are actually replacement operations. Pods are immutable, so you never change or update them after they're deployed. A few of the specifications to remember:
+    - `revisionHistoryLimit: 5`, tells k8s to keep the configs from the previous five releases for easy rollbacks.
+    - `progressDeadlineSeconds: 300`, tells k8s to wait 5 minutes for the new pod to be ready. If it takes longer, k8s will rollback.
+    - `minReadySeconds: 10`, tells k8s to wait 10 seconds for the new pod to be ready. Longer waits give you a better chance of catching problems and preventing scenarios where you replace all replicas with broken ones.
+    - `rollingUpdate` tells k8s to use a rolling update strategy.
+    - `maxSurge` and `maxUnavailable` tell k8s how many new and unavailable pods to allow before rolling out new ones.
+
+Sounds great? How does k8s know which pods to delete and replace? `labels`! The deployment spec has a selector block, which is a list of labels the Deployment controlle will look for when finding Pods to update during rollouts.
+
+You can monitor the progress using the `kubectl rollout status deployment/my-deployment` command. You can also use the `kubectl rollout pause deploy <deployment-name>` to pause a rolling update and `kubectl rollout resume deploy <deployment-name>` to resume it.
+
+[Rollback]
+use the `kubectl rollout history deployment <deployment-name>` command to see revision history. You can them run `kubectl rollout undo deployment <deployment-name> --to-revision=X`, where `X` is the revision number you want to go back to.
+
+Deployments and ReplicaSets use labels and selectors to determine which pods they own and manage. If order to avoid taking ownership of pods that were deployed statically, without using a deployment, k8s adds a system-generated `pod-template-hash` label to each pod created through a deployment.
+
