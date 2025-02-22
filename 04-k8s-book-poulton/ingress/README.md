@@ -35,4 +35,12 @@ Ingress classes allow you to run multiple ingress controllers on a single cluste
 
 - Configure DNS for `orders.example.com` and `products.example.com` to point to the load balancer IP of the ingress controller.
 
+[Inspecing Ingress Objects]
 
+- Run `kubectl get ingress or ing` to see the list of `Ingress` objects in the cluster. For more details run `kubectl describe ingress <ingress-name>`
+
+Once you’ve installed an Ingress controller, you create and deploy Ingress objects, which are lists of rules governing how incoming traffic is routed to applications on your cluster. It supports host-based and path-based HTTP routing.
+
+To remove the earlier installed ingress controller, run the following command:
+```bash
+kubectl delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.9.4/deploy/static/provider/cloud/deploy.yaml
