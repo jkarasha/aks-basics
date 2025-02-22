@@ -23,3 +23,8 @@ NodePort service has two limitations: It has to to use a high port number (30000
 
 [LoadBalancer Services]
 Provides an easier way to export Services to external clients. Essentially a NodePort service with a load balancer in front of it.
+
+[Working with Services Imperatively]
+Use the `kubectl expose deployment <deployment-name> --type=LoadBalancer` command to create a `LoadBalancer` Service. This will expose the Service to the internet. 
+
+To see the created `endpointslice` resource, run the `kubectl get endpointslice` command. You can also describe the endpoint slice by running `kubectl describe endpointslice <endpointslice-name>` to get additional details.
