@@ -1,0 +1,1 @@
+What is `WebAssembly(Wasm)`? It is a binary instruction set architecture(ISA), like ARM, x86, MIPS, and RISC-V. This means programming languages can compile source code into `Wasm` binaries that will run on any sytem with a `Wasm runtime`.
