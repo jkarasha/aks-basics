@@ -1,0 +1,1 @@
+Because pods are unreliable, you shouldn't connect to them directly. You should always use a Service.
