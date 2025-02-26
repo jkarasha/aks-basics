@@ -1,0 +1,1 @@
+K8s allows you to build and store apps and their configurations seperately and bring them together at run time.
