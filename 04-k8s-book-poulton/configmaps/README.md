@@ -46,6 +46,45 @@ data:
     log-size = 1m
 ```
 
-Once stored, you can inject it into containers at run time as: environment variables, arguments to the container's startup command or files in a volume
+Once stored, you can inject it into containers at run time as: environment variables, arguments to the container's startup command or files in a volume.
 
+Like other k8s objects, ConfigMaps can be created imperatively or declaratively. To create imperatively, you can use the `kubectl create configmap` command.
 
+Unlike other k8s objects, ConfigMaps do not have a concept of state(desired state vs actual state). That's why they are defined with a `data` section instead of a `spec` section.
+
+[Using configmaps in containers](https://kubernetes.io/docs/concepts/configuration/configmap/#using-configmaps-in-containers)
+
+- ConfigMaps + Env vars: by using `valueFrom.configMapKeyRef` in the container spec.
+```
+env:
+  -name: FIRSTNAME
+  valueFrom:
+    configMapKeyRef:
+      name: test-cm-singlemap
+      key: given
+```
+When the pod is scheduled and the container is started, `FIRSTNAME` will be injected as an environment variable.
+
+Environment variables are static so changes made to the ConfigMap do not propagate to the container.
+
+You can use the variables, just like any other environment variable.
+```
+command: [ "/bin/sh", "-c", "echo First name $(FIRSTNAME)" ]
+```
+
+- ConfigMaps + Volumes: by using `valueFrom.configMapKeyRef` in the volume spec. This allows for changes to the volume contents to be reflected on the container at run time.
+
+```
+...
+spec:
+  volumes:
+  - name: config-volume-map
+    configMap:
+      name: test-cm-singlemap
+  containers:
+  - name: configmap-test
+    image: busybox
+    volumeMounts:
+    - mountPath: /etc/test.conf
+      name: config-volume-map
+```

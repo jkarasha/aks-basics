@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: startup-pod
+  labels:
+    chapter: configmaps
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: args-1
+    image: busybox
+    command: ["echo", "hello $(FIRSTNAME) $(LASTNAME)"]
+    env:
+    - name: FIRSTNAME
+      valueFrom:
+        configMapKeyRef:
+          name: test-cm-declarative
+          key: givenname
+    - name: LASTNAME
+      valueFrom:
+        configMapKeyRef:
+          name: test-cm-declarative
+          key: surname
