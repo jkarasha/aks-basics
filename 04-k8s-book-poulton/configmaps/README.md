@@ -88,3 +88,25 @@ spec:
     - mountPath: /etc/test.conf
       name: config-volume-map
 ```
+
+[Secrets](https://kubernetes.io/docs/concepts/configuration/secret/)
+Secrets are identical to ConfigMaps, except that they are intended for storing sensitive information.
+
+Although k8s makes an effort to secure the data, it is not 100% secure.
+
+For a more complete and secure secrets management use something like [Vault](https://www.vaultproject.io/).
+
+The process for using `secrets` is:
+
+1. Create the secret which is persisted on the cluster store. It's `unencrypted` by default.
+2. You schedule a Pod that uses the secret
+3. k8s transfers the `unencrypted secret` over the network to the node running the pod.
+4. The kubelet on the node starts the Pod and it's containers.
+5. The container runtime mounts the secret into the container via an in-memory tmpfs and decodes it from base64 to plain text.
+6. The container reads the secret data and uses it to configure the application.
+7. When you delete the Pod, k8s deletes the copy of the Secret on the node. The copy in the cluster store is still there.
+
+To create a secret impreatively, you can use the `kubectl create secret` command.
+
+Secrets work like ConfigMaps, you can inject them into containers at runtime as environment variables, command arguments or files in a volume. The most flexible way is to use volumes.
+
