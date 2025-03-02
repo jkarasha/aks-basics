@@ -1,0 +1,1 @@
+Stateful sets are used to deploy and manage stateful applications.
