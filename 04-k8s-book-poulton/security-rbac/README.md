@@ -1,0 +1,1 @@
+K8s is api-centric, it's API is served through the API server.

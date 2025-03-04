@@ -25,7 +25,11 @@ Node failures are a bit trickier to handle. Because a k8s has no way to knowing 
 [Network ID & Headless Services]
 A `headless` service is a service that has no `clusterIP` and no `externalIP`. It's becomes a StatefulSets `governing service`. When you combine a StatefulSet with a `headless` service, the service creates `DNS SRV` and `DNS A` records for every pod matching teh Service's label selector, making it easier for service discovery.
 
-
+[Hands-on Exercise]
+We are going to deploy a StatefulSet by going through the following steps:
+* Creating a `StorageClass` for persistent storage
+* Creating a `headless` service
+* Creating a StatefulSet
 
 
 
