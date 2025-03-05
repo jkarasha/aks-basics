@@ -1,0 +1,1 @@
+To make the most of k8s, understanding the API is crucial.
