@@ -18,3 +18,12 @@ The API server exposes a REST API that allows clients to get, create, update, an
 The API server is a k8s control plane service that runs as a pod[s] in the`kube-system` namespace.
 It's important to ensure that the  control plane is highly available and has enough performance to match
 the load of the cluster. If you use a hosted service, the API Server implementation is abstracted away.
+
+The K8S api resources are divided into groups.
+* `core` group: contains core resources such as pods, services, and nodes.
+* `apps` group: contains resources such as deployments, statefulsets, and daemonsets.
+* `networking.k8s.io` group: contains resources such as ingress.
+* `rbac.authorization.k8s.io` group: contains resources such as roles and rolebindings.
+* `storage.k8s.io` group: contains resources such as storage classes.
+* `apiextensions.k8s.io` group: contains resources such as custom resources.
+
