@@ -1,0 +1,31 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: nextflow  # Using your namespace from previous context
+  name: nextflow-pod-operator
+rules:
+- apiGroups: [""]
+  resources: ["pods", "pods/log"]
+  verbs: ["get", "list", "watch", "create", "delete"]
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list"]
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["get", "list", "watch", "create", "delete"]
+
+---
+# RoleBinding to assign the Role to a ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: nextflow-pod-operator-binding
+  namespace: nextflow
+subjects:
+- kind: ServiceAccount
+  name: nextflow-sa  # Your service account from previous context
+  namespace: nextflow
+roleRef:
+  kind: Role
+  name: nextflow-pod-operator
+  apiGroup: rbac.authorization.k8s.io
