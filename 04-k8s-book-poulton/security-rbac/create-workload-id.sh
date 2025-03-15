@@ -81,6 +81,13 @@ USER_ASSIGNED_PRINCIPAL_ID="$(az identity show \
 --query "principalId" \
 --output tsv)"
 
+
+az identity show \
+--name "aks-ckad-prep-mi" \
+--resource-group "rgAKSDemo" \
+--query "principalId" \
+--output tsv
+
 FEDERATED_IDENTITY_CREDENTIAL_NAME="aks-ckad-prep-fid"
 
 # create Kubernetes namespace
@@ -109,6 +116,16 @@ az identity federated-credential create \
     --subject "system:serviceaccount:${SERVICE_ACCOUNT_NAMESPACE}:${SERVICE_ACCOUNT_NAME}" \
     --audience api://AzureADTokenExchange
 
+# Get Key Vault ID
+AKV_ID=$(az keyvault show --name "aks-demo-kv" --resource-group ${RESOURCE_GROUP} --query id --output tsv)
+
+# Assign the Key Vault Secrets User role to the user-assigned managed identity
+info "Assigning Key Vault Secrets User role to the user-assigned managed identity..."
+az role assignment create \
+    --assignee-object-id "${USER_ASSIGNED_PRINCIPAL_ID}" \
+    --role "Key Vault Secrets User" \
+    --scope "${AKV_ID}" \
+    --assignee-principal-type ServicePrincipal
 
 info "Workload Identity setup completed successfully!"
 echo "Resource Group: ${RESOURCE_GROUP}"
