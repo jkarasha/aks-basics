@@ -40,8 +40,8 @@ LOCATION="westus3"
 RESOURCE_GROUP="rgAKSDemo"
 CLUSTER_NAME="aks-ckad-prep"
 USER_ASSIGNED_IDENTITY_NAME="aks-ckad-prep-mi"
-SERVICE_ACCOUNT_NAME="nextflow-sa"
-SERVICE_ACCOUNT_NAMESPACE="nextflow"
+SERVICE_ACCOUNT_NAME="tower-launcher-sa"
+SERVICE_ACCOUNT_NAMESPACE="tower-nf"
 
 # ASSUMES CLUSTER EXISTS
 
@@ -81,30 +81,7 @@ USER_ASSIGNED_PRINCIPAL_ID="$(az identity show \
 --query "principalId" \
 --output tsv)"
 
-
-az identity show \
---name "aks-ckad-prep-mi" \
---resource-group "rgAKSDemo" \
---query "principalId" \
---output tsv
-
-FEDERATED_IDENTITY_CREDENTIAL_NAME="aks-ckad-prep-fid"
-
-# create Kubernetes namespace
-info "Creating Kubernetes namespace ${SERVICE_ACCOUNT_NAMESPACE}..."
-kubectl create namespace ${SERVICE_ACCOUNT_NAMESPACE}
-
-# Create Kubernetes service account
-info "Creating Kubernetes service account..."
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  annotations:
-    azure.workload.identity/client-id: ${USER_ASSIGNED_CLIENT_ID}
-  name: ${SERVICE_ACCOUNT_NAME}
-  namespace: ${SERVICE_ACCOUNT_NAMESPACE}
-EOF
+FEDERATED_IDENTITY_CREDENTIAL_NAME="tower-nf-fid"
 
 # Create federated identity credential
 info "Creating federated identity credential..."
@@ -115,26 +92,6 @@ az identity federated-credential create \
     --issuer ${AKS_OIDC_ISSUER} \
     --subject "system:serviceaccount:${SERVICE_ACCOUNT_NAMESPACE}:${SERVICE_ACCOUNT_NAME}" \
     --audience api://AzureADTokenExchange
-
-# Get Key Vault ID
-AKV_ID=$(az keyvault show --name "aks-demo-kv" --resource-group ${RESOURCE_GROUP} --query id --output tsv)
-
-# Assign the Key Vault Secrets User role to the user-assigned managed identity
-info "Assigning Key Vault Secrets User role to the user-assigned managed identity..."
-az role assignment create \
-    --assignee-object-id "${USER_ASSIGNED_PRINCIPAL_ID}" \
-    --role "Key Vault Secrets User" \
-    --scope "${AKV_ID}" \
-    --assignee-principal-type ServicePrincipal
-
-
-az role assignment create \
-    --assignee-object-id "e3935f3b-f0b8-4986-bcfa-620f0446b250" \
-    --role "Key Vault Secrets User" \
-    --scope "/subscriptions/8836a6a2-3c25-46db-a67d-f0ffe9221b09/resourceGroups/rgAKSDemo/providers/Microsoft.Storage/storageAccounts/a368700nextflow" \
-    --assignee-principal-type ServicePrincipal
-
-
 
 
 info "Workload Identity setup completed successfully!"
