@@ -1,0 +1,1 @@
+How to configure and set up nextflow running on AKS.
