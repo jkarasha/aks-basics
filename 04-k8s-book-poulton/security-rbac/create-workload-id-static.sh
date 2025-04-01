@@ -36,10 +36,10 @@ command -v az >/dev/null 2>&1 || error_exit "Azure CLI is not installed"
 command -v kubectl >/dev/null 2>&1 || error_exit "kubectl is not installed"
 
 # Default values
-LOCATION="westus3"
-RESOURCE_GROUP="rgAKSDemo"
-CLUSTER_NAME="aks-ckad-prep"
-USER_ASSIGNED_IDENTITY_NAME="aks-ckad-prep-mi"
+LOCATION="westcentralus"
+RESOURCE_GROUP="rgNextflow"
+CLUSTER_NAME="aks-nextflow"
+USER_ASSIGNED_IDENTITY_NAME="aks-nextflow-mi"
 SERVICE_ACCOUNT_NAME="tower-launcher-sa"
 SERVICE_ACCOUNT_NAMESPACE="tower-nf"
 
