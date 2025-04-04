@@ -1,5 +1,8 @@
 export RG_NAME="rgAKSLabWorkshop"
-export LOCATION="westcentralus" # Make sure the region supports availability zones
+export LOCATION="westus3" # Make sure the region supports availability zones
+export AKS_NAME="aks-labdemo"
+export USER_ID="$(az ad signed-in-user show --query id -o tsv)"
+export DEPLOY_NAME="aks-labdemo$(date +%s)"
 
 #make sure you are logged in.
 #az login --use-device-code
@@ -8,11 +11,9 @@ export LOCATION="westcentralus" # Make sure the region supports availability zon
 az group create \
 --name ${RG_NAME} \
 --location ${LOCATION}
+echo "Resource group ${RG_NAME} created in ${LOCATION}"
 
 # Use ARM template to deploy resources
-export USER_ID="$(az ad signed-in-user show --query id -o tsv)"
-export DEPLOY_NAME="aks-labdemo$(date +%s)"
-#
 az deployment group create \
 --name ${DEPLOY_NAME} \
 --resource-group ${RG_NAME} \
@@ -20,6 +21,7 @@ az deployment group create \
 --parameters userObjectId=${USER_ID} \
 --no-wait
 
+echo "Deployment started. You can check the status in the Azure portal."
 #--no-wait will run the deployment in the background
 
 # Get the latest k8s version
@@ -37,7 +39,7 @@ az aks create \
 --os-sku AzureLinux \
 --nodepool-name systempool \
 --node-count 3 \
---zones 1 2 3 \
+--zones 2 3 \
 --load-balancer-sku standard \
 --network-plugin azure \
 --network-plugin-mode overlay \
@@ -48,11 +50,15 @@ az aks create \
 --enable-acns \
 --generate-ssh-keys
 
+echo "AKS cluster ${AKS_NAME} created in ${LOCATION} with version ${K8S_VERSION}"
+
 # Connect to the cluster
 az aks get-credentials \
 --resource-group ${RG_NAME} \
 --name ${AKS_NAME} \
 --overwrite-existing
+
+echo "Connected to AKS cluster ${AKS_NAME}"
 
 # Add a user node pool
 az aks nodepool add \
@@ -62,7 +68,9 @@ az aks nodepool add \
 --name userpool \
 --node-count 1 \
 --node-vm-size Standard_DS2_v2 \
---zones 1 2 3
+--zones 2 3
+
+echo "User node pool userpool created in ${AKS_NAME}"
 
 # taint the system node pool
 az aks nodepool update \
@@ -71,32 +79,21 @@ az aks nodepool update \
 --name systempool \
 --node-taints CriticalAddonsOnly=true:NoSchedule
 
-
-# Enable monitoring & logging
-while IFS= read -r line; \
-do echo "exporting $line"; \
-export $line=$(az deployment group show -g ${RG_NAME} -n ${DEPLOY_NAME} --query "properties.outputs.${line}.value" -o tsv); \
-done < <(az deployment group show -g $RG_NAME -n ${DEPLOY_NAME} --query "keys(properties.outputs)" -o tsv)
-
-# Enable metrics monitoring
-az aks update \
---resource-group ${RG_NAME} \
---name ${AKS_NAME} \
---enable-azure-monitor-metrics \
---azure-monitor-workspace-resource-id ${monitor_id} \
---grafana-resource-id ${grafana_id} \
---no-wait
-
-# enable monitoring add-on
-az aks enable-addons \
---resource-group ${RG_NAME} \
---name ${AKS_NAME} \
---addon monitoring \
---workspace-resource-id ${logs_id} \
---no-wait
+echo "System node pool systempool tainted in ${AKS_NAME}"
 
 # create demo namespace
 kubectl create namespace pets
+echo "Namespace pets created"
 
 # deploy aks-demo application
 kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/aks-store-demo/refs/heads/main/aks-store-quickstart.yaml -n pets
+echo "aks-store-demo application deployed in pets namespace"
+# wait for the application to be ready 
+while [ $(kubectl get pods -n pets -l app=aks-store-demo -o jsonpath='{.items[0].status.containerStatuses[0].ready}') != "true" ]; do
+  echo "Waiting for aks-store-demo application to be ready..."
+  sleep 5
+done
+echo "aks-store-demo application is ready"
+# get the application url
+export APP_URL=$(kubectl get service aks-store-demo -n pets -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+echo "Application URL: http://${APP_URL}"
