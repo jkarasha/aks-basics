@@ -41,7 +41,7 @@ export K8S_VERSION=$(az aks get-versions -l ${LOCATION} \
 -o tsv)
 ```
 
-### Sample
+### Sample configuration
 
 Running the corresponding script will create a cluster with the following:
 
@@ -54,3 +54,47 @@ Some best practice for production clusters:
 * Disable SSH access to the nodes to prevent unauthorized access
 * Enable a managed identity for passwordless authentication to Azure services
 
+## Add the user node pool
+
+The previous configuration will only create a system pool. To run user workloads, you'll need to add a user node pool.
+
+```
+az aks nodepool add \
+--resource-group ${RG_NAME} \
+--cluster-name ${AKS_NAME} \
+--mode User \
+--name userpool \
+--node-count 1 \
+--node-vm-size Standard_DS2_v2 \
+--zones 1 2 3
+```
+
+## Taint the system node pool
+
+We need to add a taint to the system node pool to prevent user workloads from being scheduled on it. A taint is a key-value pair that prevents pods from being scheduled on a node unless the pod has the corresponding toleration
+
+```
+az aks nodepool update \
+--resource-group ${RG_NAME} \
+--cluster-name ${AKS_NAME} \
+--name systempool \
+--node-taints CriticalAddonsOnly=true:NoSchedule
+```
+
+## Monitoring & Logging
+
+Monitoring and logging are essential for maintaining the health and performance of your AKS cluster. AKS provides integrations with Azure Monitor for metrics and logs. Logging is provided by `container insights` which can send container logs to `Azure Log Analytics Workspaces` for analysis. Metrics are provided by `Azure Monitor managed service for Prometheus` which collects performance metrics from nodes and pods and allows you to query using `PromQL` and visualize using `Azure Managed Grafana`.
+
+
+## Deploy the AKS Store Demo Application
+```
+kubectl create namespace pets
+
+kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/aks-store-demo/refs/heads/main/aks-store-quickstart.yaml -n pets
+```
+![Deploy to Azure](images/aks-store-architecture-778ef23874e9ffd101bb1ff5429a3c4e.png)
+
+
+## Clean up
+
+Clean up resources.

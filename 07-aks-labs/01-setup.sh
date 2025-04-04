@@ -53,3 +53,50 @@ az aks get-credentials \
 --resource-group ${RG_NAME} \
 --name ${AKS_NAME} \
 --overwrite-existing
+
+# Add a user node pool
+az aks nodepool add \
+--resource-group ${RG_NAME} \
+--cluster-name ${AKS_NAME} \
+--mode User \
+--name userpool \
+--node-count 1 \
+--node-vm-size Standard_DS2_v2 \
+--zones 1 2 3
+
+# taint the system node pool
+az aks nodepool update \
+--resource-group ${RG_NAME} \
+--cluster-name ${AKS_NAME} \
+--name systempool \
+--node-taints CriticalAddonsOnly=true:NoSchedule
+
+
+# Enable monitoring & logging
+while IFS= read -r line; \
+do echo "exporting $line"; \
+export $line=$(az deployment group show -g ${RG_NAME} -n ${DEPLOY_NAME} --query "properties.outputs.${line}.value" -o tsv); \
+done < <(az deployment group show -g $RG_NAME -n ${DEPLOY_NAME} --query "keys(properties.outputs)" -o tsv)
+
+# Enable metrics monitoring
+az aks update \
+--resource-group ${RG_NAME} \
+--name ${AKS_NAME} \
+--enable-azure-monitor-metrics \
+--azure-monitor-workspace-resource-id ${monitor_id} \
+--grafana-resource-id ${grafana_id} \
+--no-wait
+
+# enable monitoring add-on
+az aks enable-addons \
+--resource-group ${RG_NAME} \
+--name ${AKS_NAME} \
+--addon monitoring \
+--workspace-resource-id ${logs_id} \
+--no-wait
+
+# create demo namespace
+kubectl create namespace pets
+
+# deploy aks-demo application
+kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/aks-store-demo/refs/heads/main/aks-store-quickstart.yaml -n pets
