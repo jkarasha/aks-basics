@@ -4,6 +4,13 @@ export AKS_NAME="aks-labdemo"
 export USER_ID="$(az ad signed-in-user show --query id -o tsv)"
 export DEPLOY_NAME="aks-labdemo$(date +%s)"
 
+# Enable monitoring & logging
+echo "deployment name: ${DEPLOY_NAME}"
+echo "resource group: ${RG_NAME}"
+echo "AKS name: ${AKS_NAME}"
+echo "user id: ${USER_ID}"
+echo "location: ${LOCATION}"
+
 #make sure you are logged in.
 #az login --use-device-code
 
@@ -88,12 +95,14 @@ echo "Namespace pets created"
 # deploy aks-demo application
 kubectl apply -f https://raw.githubusercontent.com/Azure-Samples/aks-store-demo/refs/heads/main/aks-store-quickstart.yaml -n pets
 echo "aks-store-demo application deployed in pets namespace"
+
 # wait for the application to be ready 
-while [ $(kubectl get pods -n pets -l app=aks-store-demo -o jsonpath='{.items[0].status.containerStatuses[0].ready}') != "true" ]; do
+while [ $(kubectl get pods -n pets -l app=store-front -o jsonpath='{.items[0].status.containerStatuses[0].ready}') != "true" ]; do
   echo "Waiting for aks-store-demo application to be ready..."
   sleep 5
 done
 echo "aks-store-demo application is ready"
+
 # get the application url
-export APP_URL=$(kubectl get service aks-store-demo -n pets -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+export APP_URL=$(kubectl get service store-front -n pets -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 echo "Application URL: http://${APP_URL}"
