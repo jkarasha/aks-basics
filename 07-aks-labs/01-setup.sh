@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export RG_NAME="rgAKSLabWorkshop"
 export LOCATION="westus3" # Make sure the region supports availability zones
 export AKS_NAME="aks-labdemo"
